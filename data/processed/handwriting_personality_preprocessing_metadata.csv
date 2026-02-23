@@ -1,0 +1,7 @@
+key,value
+n_rows,2000
+n_features_input_original,18
+n_features_after_transform,20
+categorical_encoding,onehot_multiclass (Gender with 3 categories)
+numeric_scaling,StandardScaler
+best_k_by_silhouette,2
