@@ -1,146 +1,124 @@
 # Proyecto 9 · Aprendizaje No Supervisado
 
-Proyecto de clase inspirado en la guía de Factoría F5 para **Machine Learning no supervisado**, adaptado para trabajar con un dataset diferente de Kaggle:
-
-- **Dataset:** Handwriting and Personality Traits Dataset.
-- **Objetivo académico:** aplicar un flujo end-to-end de *unsupervised learning* (EDA, preparación, clustering/reducción de dimensionalidad y conclusiones).
-
-> Este README está planteado como versión inicial del proyecto: simple, accionable y lista para iterar según avance el análisis.
+Análisis no supervisado sobre el dataset **Handwriting and Personality Traits** para detectar estructura latente en los datos de escritura y relacionarla con rasgos de personalidad (Big Five).
 
 ---
 
-## 1) Objetivo del proyecto
+## 1) Objetivo académico
 
-Analizar rasgos de personalidad asociados a características de escritura y descubrir patrones sin etiqueta objetivo mediante técnicas de aprendizaje no supervisado.
+Construir un flujo reproducible de aprendizaje no supervisado que permita:
+- preparar datos para modelado,
+- entrenar y comparar algoritmos de clustering,
+- evaluar calidad de clusters con métricas internas,
+- interpretar clusters en términos de perfil psicológico.
 
-Preguntas guía iniciales:
-- ¿Existen grupos naturales de perfiles en los datos?
-- ¿Qué variables explican mejor las diferencias entre grupos?
-- ¿Se puede reducir dimensionalidad manteniendo estructura útil para visualización e interpretación?
-
----
-
-## 2) Dataset seleccionado
-
-**Fuente:** Kaggle (Handwriting and Personality Traits Dataset).
-
-### Resumen de trabajo con el dataset
-1. Revisar la *data card* y diccionario de variables.
-2. Descargar y guardar el fichero original en `data/raw/`.
-3. Validar estructura:
-   - tipos de dato,
-   - valores nulos,
-   - duplicados,
-   - outliers básicos.
-4. Definir versión limpia en `data/processed/` con trazabilidad.
+> Alcance: exploración y análisis; no incluye despliegue ni optimización avanzada.
 
 ---
 
-## 3) Plan de trabajo previo (pre-proyecto)
+## 2) Dataset
 
-Antes de modelar, se seguirá este checklist:
+- **Fuente:** Kaggle · Handwriting and Personality Traits Dataset.
+- **Registros usados:** 2.000 observaciones.
+- **Variables para clustering:** 20 features procesadas (numéricas escaladas + género codificado).
+- **Variables de interpretación:** 5 rasgos Big Five (`Openness`, `Conscientiousness`, `Extraversion`, `Agreeableness`, `Neuroticism`).
 
-### A. Entendimiento del problema
-- Definir alcance del entregable final (insights + visualizaciones + conclusiones).
-- Formular hipótesis exploratorias (sin variable target).
-
-### B. Preparación del entorno
-- Crear entorno virtual.
-- Instalar dependencias base.
-- Estructurar carpetas de trabajo.
-
-### C. Auditoría inicial de datos
-- Perfilado rápido de dataset.
-- Registro de calidad de datos.
-- Decidir estrategia de imputación/transformación.
-
-### D. Diseño del pipeline no supervisado
-- Escalado y codificación.
-- Modelos candidatos:
-  - K-Means,
-  - Agglomerative Clustering,
-  - DBSCAN,
-  - PCA / t-SNE / UMAP (según viabilidad).
-- Métricas de evaluación interna:
-  - Silhouette,
-  - Davies-Bouldin,
-  - Calinski-Harabasz.
-
-### E. Comunicación
-- Consolidar notebook final y/o scripts reproducibles.
-- Documentar decisiones y limitaciones.
+Archivos clave:
+- `data/raw/handwriting_personality_large_dataset.csv`
+- `data/processed/handwriting_personality_clustering_input.csv`
+- `data/processed/handwriting_personality_profile_targets.csv`
 
 ---
 
-## 4) Estructura de carpetas (inicial)
+## 3) Proceso seguido en el proyecto
+
+### Fase 1 · EDA (`notebooks/01_eda.ipynb`)
+- Revisión de estructura, tipos, calidad de datos y distribución general.
+- Identificación de variables útiles para el flujo no supervisado.
+
+### Fase 2 · Preprocesado (`notebooks/02_preprocessing.ipynb`)
+- Limpieza y transformación reproducible.
+- Escalado de variables numéricas.
+- Codificación de variables categóricas.
+- Export de datasets finales en `data/processed/`.
+
+### Fase 3 · Modelado no supervisado (`notebooks/03_unsupervised_modeling.ipynb`)
+- Baseline con **K-Means**.
+- Evaluación de `k = 2..8`.
+- Comparativa con **Agglomerative Clustering** y **DBSCAN**.
+- Métricas internas: **Silhouette**, **Davies-Bouldin**, **Calinski-Harabasz**.
+- Análisis de composición de clusters y perfil Big Five.
+- Evaluación básica de estabilidad (ARI entre semillas).
+- Síntesis en `reports/unsupervised_modeling_report.md`.
+
+---
+
+## 4) Resultados principales
+
+### 4.1 Selección de modelo
+- Mejor configuración en el rango evaluado: **K-Means con k=2**.
+- Silhouette (mejor caso): **0.0441**.
+
+### 4.2 Comparativa de algoritmos
+- **K-Means (k=2):** mejor desempeño relativo dentro de lo probado.
+- **Agglomerative (k=2):** peor separación interna que K-Means.
+- **DBSCAN:** no detectó clusters válidos en los `eps` evaluados.
+
+### 4.3 Composición de clusters (K-Means, k=2)
+- Cluster 0: **989** observaciones.
+- Cluster 1: **1011** observaciones.
+- Diferencias en promedios Big Five **moderadas**, sin separación fuerte.
+
+### 4.4 Estabilidad
+- ARI medio entre ejecuciones con distintas semillas: **0.3770**.
+- ARI mínimo: **-0.0005**.
+- ARI máximo: **0.9761**.
+
+Interpretación: la estructura detectada es **débil** y sensible a inicialización; los clusters son útiles para segmentación exploratoria, no para tipologías rígidas.
+
+---
+
+## 5) Conclusión final del proyecto
+
+El objetivo del proyecto no supervisado se cumple: se construyó un pipeline reproducible, se compararon algoritmos y se obtuvo una lectura clara de la estructura de los datos.
+
+Sin embargo, los resultados indican que la separabilidad natural de clusters es baja. Por ello, una extensión metodológicamente sólida para una siguiente fase sería incorporar un enfoque **supervisado de regresión multisalida** para predecir los rasgos Big Five continuos.
+
+### ¿Por qué regresión (y no clasificación) en la continuación?
+- Los rasgos Big Five están representados como **variables continuas**.
+- Clasificar exigiría discretizar artificialmente esos valores, con pérdida de información.
+- La evidencia del clustering (silhouette bajo y estabilidad variable) sugiere que una formulación predictiva continua puede ser más informativa para evaluación de desempeño.
+
+---
+
+## 6) Estructura del repositorio
 
 ```text
 Proyecto-9-Aprendizaje-No-supervisado/
+├── config/
+│   └── params.yaml
 ├── data/
-│   ├── raw/            # datos originales descargados
-│   ├── interim/        # datos temporales en limpieza
-│   └── processed/      # datasets listos para modelado
+│   ├── raw/
+│   └── processed/
 ├── notebooks/
 │   ├── 01_eda.ipynb
 │   ├── 02_preprocessing.ipynb
 │   └── 03_unsupervised_modeling.ipynb
-├── src/
-│   ├── data/           # carga/validación de datos
-│   ├── features/       # transformaciones y features
-│   ├── models/         # clustering y reducción de dimensión
-│   └── visualization/  # gráficos de apoyo
 ├── reports/
-│   └── figures/        # imágenes exportadas
-├── config/
-│   └── params.yaml     # parámetros de experimentos
-├── requirements.txt
-└── README.md
+│   └── unsupervised_modeling_report.md
+├── src/
+└── requirements.txt
 ```
 
 ---
 
-## 5) Primeros pasos para iniciar el proyecto
+## 7) Cómo reproducir
 
 ```bash
-# 1) crear entorno virtual
 python -m venv .venv
-source .venv/bin/activate  # en Windows: .venv\\Scripts\\activate
-
-# 2) instalar dependencias
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# 3) arrancar jupyter
 jupyter lab
 ```
 
----
-
-## 6) Dependencias iniciales
-
-Incluidas en `requirements.txt`:
-- pandas
-- numpy
-- scikit-learn
-- matplotlib
-- seaborn
-- jupyterlab
-- umap-learn
-- yellowbrick
-
----
-
-## 7) Próximos hitos
-
-1. Cargar dataset y generar informe EDA inicial.
-2. Definir pipeline de preprocesado reproducible.
-3. Comparar varios algoritmos de clustering.
-4. Evaluar calidad de clusters y estabilidad.
-5. Elaborar storytelling final con conclusiones.
-
----
-
-## Estado actual
-
-✅ README inicial actualizado  
-✅ Estructura base del proyecto creada  
-⏳ Pendiente: ingestión del dataset y EDA inicial
+Ejecutar notebooks en orden: `01_eda` → `02_preprocessing` → `03_unsupervised_modeling`.
